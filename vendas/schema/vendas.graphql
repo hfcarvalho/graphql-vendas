@@ -1,0 +1,80 @@
+const {gql} = require('apollo-server');
+const graphql = require('graphql');
+
+//used to dynamic create types
+const venda = new graphql.GraphQLObjectType({
+    name: 'Cliente',
+    fields: {
+        codigo: { type: graphql.GraphQLID },
+        nome: { type: graphql.GraphQLString },
+        ativo: { type: graphql.GraphQLBoolean },
+        email: { type: graphql.GraphQLString },
+    }
+})
+
+const clienteSchema = gql`
+    type Query{
+        clientes: [Cliente]
+        vendas: [Venda]
+        cliente(codigo: ID!): Cliente
+        vendasPorCliente(codigoCliente: Int!): [Venda]
+        vendasPorStatus(status: StatusVenda): [Venda]
+    }
+
+    type Cliente{
+        codigo: ID!
+        nome: String!
+        ativo: Boolean!
+        email: String
+        dataNascimento: String!
+        vendas: [Venda]
+    }
+
+    type Venda{
+        id: ID!
+        data: String!
+        cliente: Cliente!
+        status: StatusVenda!
+    }
+
+    enum StatusVenda{
+        PROCESSANDO,
+        APROVADO,
+        RECUSADO
+    }
+
+    input ClienteInput{
+        nome: String
+        ativo: Boolean
+        email: String
+        dataNascimento: String!
+    }
+
+    type Mutation{
+        addCliente(cliente: ClienteInput): Cliente!
+
+        alterCliente(id: ID!, cliente: ClienteInput): alterClienteResponse!
+
+        deleteCliente(codigo: ID!): deleteClienteResponse!
+    }
+
+    #abstract type
+    interface CustomResponse {
+        code: Int!
+        message: String!
+    }
+
+    type deleteClienteResponse implements CustomResponse {
+        code: Int!
+        message: String!
+    }
+
+    type alterClienteResponse implements CustomResponse {
+        code: Int!
+        message: String!
+        cliente: Cliente!
+    }
+    
+`
+
+module.exports = clienteSchema
